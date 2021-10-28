@@ -1,8 +1,8 @@
 import requests
 
-
 import xml.etree.ElementTree as ET
 from urllib.request import urlopen
+import datetime
 
 
 class DovizKurlari():
@@ -121,10 +121,29 @@ class Charge:
     def charge(self, amount):
         r = requests.post("http://172.105.248.143/api/charge", data={"wallet_sc_key": self.sc_key,
                                                                      "receiving_wallet": self.receiving_wallet,
-                                                                     "amount": amount/get_price()})
+                                                                     "amount": amount / get_price()})
         if r.text == "Ödeme Onaylandı":
-            return {"status": True, "reason_of_failure": "Success", "litecoin_amount": str(amount/get_price())}
+            return {"status": True, "reason_of_failure": "Success", "litecoin_amount": str(amount / get_price())}
         elif not r.ok:
-            return {"status": False, "reason_of_failure": "Yetersiz cüzdan bakiyesi", "litecoin_amount": str(amount / get_price())}
+            return {"status": False, "reason_of_failure": "Yetersiz cüzdan bakiyesi",
+                    "litecoin_amount": str(amount / get_price())}
         else:
-            return {"status": False, "reason_of_failure": r.text, "litecoin_amount": str(amount/get_price())}
+            return {"status": False, "reason_of_failure": r.text, "litecoin_amount": str(amount / get_price())}
+
+    def installmentCharge(self, amount, installment_amount, total_months):
+        r = requests.post("http://172.105.248.143/api/createInstallmentCharge",
+                          data={"wallet_sc_key": self.sc_key,
+                                "receiving_wallet": self.receiving_wallet,
+                                "amount": amount / get_price(),
+                                "installment_amount": installment_amount,
+                                "total_months": total_months,
+                                "day_of_month": datetime.datetime.today().day
+                                })
+
+        if r.text == "Ödeme Onaylandı":
+            return {"status": True, "reason_of_failure": "Success", "litecoin_amount": str(amount / get_price())}
+        elif not r.ok:
+            return {"status": False, "reason_of_failure": "Yetersiz cüzdan bakiyesi",
+                    "litecoin_amount": str(amount / get_price())}
+        else:
+            return {"status": False, "reason_of_failure": r.text, "litecoin_amount": str(amount / get_price())}
