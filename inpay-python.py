@@ -2,6 +2,28 @@ import requests
 import datetime
 
 
+def retrieveCards(wallet_key):
+    req = requests.post("http://172.105.248.143/api/collect_cards", data={
+        "card_view_key": wallet_key,
+    })
+
+    return req.text
+
+
+class WalletKeys:
+    def __init__(self, email, password):
+        self.password = password
+        self.email = email
+
+    def retrieveAccountKey(self):
+        req = requests.post("http://172.105.248.143/api/collect_ckey", data={
+            "email": self.email,
+            "password": self.password
+        })
+
+        return req.text
+
+
 class Charge:
     def __init__(self, sc_key, receiving_wallet):
         self.sc_key = sc_key
@@ -54,27 +76,26 @@ class Charge:
         else:
             return "Başarısız"
 
-
-def marketplaceInstallmentCharge(self, installment_amount, total_months, second_receiver, commission_percentage):
-    r = requests.post("http://172.105.248.143/api/createInstallmentCharge",
-                      data={"wallet_sc_key": self.sc_key,
-                            "receiving_wallet": self.receiving_wallet,
-                            "installment_amount": installment_amount / 100 * (100 - commission_percentage),
-                            "total_months": total_months,
-                            "day_of_month": datetime.datetime.today().day
-                            })
-
-    r_com = requests.post("http://172.105.248.143/api/createInstallmentCharge",
+    def marketplaceInstallmentCharge(self, installment_amount, total_months, second_receiver, commission_percentage):
+        r = requests.post("http://172.105.248.143/api/createInstallmentCharge",
                           data={"wallet_sc_key": self.sc_key,
-                                "receiving_wallet": second_receiver,
-                                "installment_amount": installment_amount / 100 * commission_percentage,
+                                "receiving_wallet": self.receiving_wallet,
+                                "installment_amount": installment_amount / 100 * (100 - commission_percentage),
                                 "total_months": total_months,
                                 "day_of_month": datetime.datetime.today().day
                                 })
 
-    if r.text == "Ödeme Onaylandı" and r_com.text == "Ödeme Onaylandı":
-        return "Ödeme Başarılı"
-    elif r.text == "Ödeme Onaylandı":
-        return "Ana ödeme başarılı komisyon işlemi tamamlanamadı"
-    else:
-        return "Başarısız"
+        r_com = requests.post("http://172.105.248.143/api/createInstallmentCharge",
+                              data={"wallet_sc_key": self.sc_key,
+                                    "receiving_wallet": second_receiver,
+                                    "installment_amount": installment_amount / 100 * commission_percentage,
+                                    "total_months": total_months,
+                                    "day_of_month": datetime.datetime.today().day
+                                    })
+
+        if r.text == "Ödeme Onaylandı" and r_com.text == "Ödeme Onaylandı":
+            return "Ödeme Başarılı"
+        elif r.text == "Ödeme Onaylandı":
+            return "Ana ödeme başarılı komisyon işlemi tamamlanamadı"
+        else:
+            return "Başarısız"
